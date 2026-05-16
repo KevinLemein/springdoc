@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.quavo.springdoc_ai.dto.CommitRequest;
+import com.quavo.springdoc_ai.dto.DocsRequest;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -62,6 +63,19 @@ public class AssistController {
                 .success(true)
                 .message("Commit message generated successfully")
                 .data(message)
+                .timestamp(Instant.now())
+                .requestId(UUID.randomUUID().toString())
+                .build());
+    }
+
+    @PostMapping("/docs")
+    public ResponseEntity<AssistResponse> docs(@RequestBody DocsRequest request) {
+        String markdown = assistService.generateApiDocs(request.getFilePath());
+
+        return ResponseEntity.ok(AssistResponse.builder()
+                .success(true)
+                .message("API documentation generated successfully")
+                .data(markdown)
                 .timestamp(Instant.now())
                 .requestId(UUID.randomUUID().toString())
                 .build());

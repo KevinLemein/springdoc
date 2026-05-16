@@ -117,4 +117,59 @@ public class AssistService {
                 .content()
                 .strip();
     }
+
+    public String generateApiDocs(String filePath) {
+        Path path = Path.of(filePath);
+
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException("File not found: " + filePath);
+        }
+        if (!filePath.endsWith(".java")) {
+            throw new IllegalArgumentException("Only .java files are supported: " + filePath);
+        }
+
+        String sourceCode;
+        try {
+            sourceCode = Files.readString(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file: " + filePath, e);
+        }
+
+        String systemPrompt = """
+            You are a senior engineer creating REST API documentation for a Spring Boot service.
+            Output clean Markdown only — no preamble, no meta-commentary, no explanations.
+
+            For each endpoint include:
+            - HTTP method + full path (combine class-level @RequestMapping with method-level mapping)
+            - One line description of what it does
+            - Request headers table: Authorization, Content-Type where applicable
+            - Path/query parameters table: | Name | Type | Required | Description |
+            - Request body: show a realistic JSON example
+            - Response: show a realistic JSON example matching the actual return type
+            - Status codes: list all realistic ones (200, 201, 400, 401, 403, 404, 500)
+
+            Use H2 (##) for the controller name, H3 (###) for each endpoint.
+            If you see @PreAuthorize or security annotations, note the required role.
+            If a method has no request body, omit that section entirely.
+            """;
+
+        String userPrompt = String.format("""
+            Generate REST API documentation for this Spring Boot controller.
+
+            File: %s
+
+            Source:
+            %s
+            """,
+                path.getFileName().toString(),
+                sourceCode
+        );
+
+        return chatClient.prompt()
+                .system(systemPrompt)
+                .user(userPrompt)
+                .call()
+                .content()
+                .strip();
+    }
 }
