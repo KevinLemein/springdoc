@@ -3,6 +3,10 @@ package com.quavo.springdoc_ai.service;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 @Service
 public class AssistService {
 
@@ -37,5 +41,27 @@ public class AssistService {
                 .user(userPrompt)
                 .call()
                 .content();
+    }
+
+    public String generateCommentsFromFile(String filePath) {
+        Path path = Path.of(filePath);
+
+        // Validate the file exists and is actually a .java file
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException("File not found: " + filePath);
+        }
+        if (!filePath.endsWith(".java")) {
+            throw new IllegalArgumentException("Only .java files are supported: " + filePath);
+        }
+
+        String sourceCode;
+        try {
+            sourceCode = Files.readString(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to read file: " + filePath, e);
+        }
+
+        // Reuse the same prompt logic, passing the filename for context
+        return generateComments(sourceCode, path.getFileName().toString());
     }
 }

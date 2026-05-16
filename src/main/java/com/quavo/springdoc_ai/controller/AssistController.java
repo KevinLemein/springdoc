@@ -35,4 +35,17 @@ public class AssistController {
                 .requestId(UUID.randomUUID().toString())
                 .build());
     }
+
+    @PostMapping("/comment/file")
+    public ResponseEntity<AssistResponse> commentFile(@RequestBody FileAssistRequest request) {
+        String documented = assistService.generateCommentsFromFile(request.getFilePath());
+
+        return ResponseEntity.ok(AssistResponse.builder()
+                .success(true)
+                .message("Documentation generated successfully")
+                .data(documented)
+                .timestamp(Instant.now())
+                .requestId(UUID.randomUUID().toString())
+                .build());
+    }
 }
