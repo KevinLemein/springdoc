@@ -6,6 +6,7 @@ import com.quavo.springdoc_ai.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.quavo.springdoc_ai.dto.CommitRequest;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -44,6 +45,23 @@ public class AssistController {
                 .success(true)
                 .message("Documentation generated successfully")
                 .data(documented)
+                .timestamp(Instant.now())
+                .requestId(UUID.randomUUID().toString())
+                .build());
+    }
+
+    @PostMapping("/commit")
+    public ResponseEntity<AssistResponse> commit(@RequestBody CommitRequest request) {
+        String message = assistService.generateCommitMessage(
+                request.getDiff(),
+                request.getBranch(),
+                request.getRecentCommits()
+        );
+
+        return ResponseEntity.ok(AssistResponse.builder()
+                .success(true)
+                .message("Commit message generated successfully")
+                .data(message)
                 .timestamp(Instant.now())
                 .requestId(UUID.randomUUID().toString())
                 .build());
