@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.quavo.springdoc_ai.dto.CommitRequest;
 import com.quavo.springdoc_ai.dto.DocsRequest;
 import com.quavo.springdoc_ai.dto.WriteResponse;
+import com.quavo.springdoc_ai.dto.BatchRequest;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -75,6 +76,20 @@ public class AssistController {
         return ResponseEntity.ok(
                 AssistResponse.success(
                         "File documented and written to disk. Backup created at: " + result.backupPath(),
+                        result,
+                        UUID.randomUUID().toString()
+                )
+        );
+    }
+
+    @PostMapping("/comment/batch")
+    public ResponseEntity<AssistResponse> commentBatch(@RequestBody BatchRequest request) {
+        BatchResponse result = assistService.writeCommentsForDirectory(request.directoryPath());
+
+        return ResponseEntity.ok(
+                AssistResponse.success(
+                        String.format("Batch complete. %d/%d files documented successfully.",
+                                result.succeeded(), result.totalFiles()),
                         result,
                         UUID.randomUUID().toString()
                 )

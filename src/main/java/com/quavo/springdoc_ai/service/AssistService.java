@@ -8,6 +8,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.quavo.springdoc_ai.dto.BatchFileResult;
+import com.quavo.springdoc_ai.dto.BatchResponse;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Service responsible for interacting with an AI chat model to perform various documentation
  * and code-related assistance tasks. This includes generating Javadoc comments,
@@ -321,5 +326,62 @@ public class AssistService {
         // Subtract 1 from the total count to exclude the class-level Javadoc,
         // as the intention is usually to count method-specific documentation.
         return Math.max(0, count - 1);
+    }
+
+    public BatchResponse writeCommentsForDirectory(String directoryPath) {
+        Path dir = Path.of(directoryPath);
+
+        if (!Files.exists(dir)) {
+            throw new IllegalArgumentException("Directory not found: " + directoryPath);
+        }
+        if (!Files.isDirectory(dir)) {
+            throw new IllegalArgumentException("Path is not a directory: " + directoryPath);
+        }
+
+        List<Path> javaFiles;
+        try {
+            javaFiles = Files.walk(dir)
+                    .filter(p -> p.toString().endsWith(".java"))
+                    .filter(p -> !p.toString().endsWith(".bak"))
+                    // Skip test files — different documentation conventions
+                    .filter(p -> !p.toString().contains("/test/"))
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to scan directory: " + directoryPath, e);
+        }
+
+        if (javaFiles.isEmpty()) {
+            throw new IllegalArgumentException("No .java files found in: " + directoryPath);
+        }
+
+        List<BatchFileResult> results = new ArrayList<>();
+
+        for (Path file : javaFiles) {
+            try {
+                WriteResponse writeResponse = writeComments(file.toString());
+                results.add(new BatchFileResult(
+                        file.toString(),
+                        true,
+                        writeResponse.methodsDocumented(),
+                        null
+                ));
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            catch (Exception e) {
+                results.add(new BatchFileResult(
+                        file.toString(),
+                        false,
+                        0,
+                        e.getMessage()
+                ));
+            }
+        }
+
+        int succeeded = (int) results.stream().filter(BatchFileResult::success).count();
+
+        return new BatchResponse(javaFiles.size(), succeeded, javaFiles.size() - succeeded, results);
     }
 }
