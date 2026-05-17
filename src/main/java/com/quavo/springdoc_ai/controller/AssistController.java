@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.quavo.springdoc_ai.dto.CommitRequest;
 import com.quavo.springdoc_ai.dto.DocsRequest;
+import com.quavo.springdoc_ai.dto.WriteResponse;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -64,6 +65,19 @@ public class AssistController {
         return ResponseEntity.ok(
                 AssistResponse.success("API documentation generated successfully", markdown,
                         UUID.randomUUID().toString())
+        );
+    }
+
+    @PostMapping("/comment/file/write")
+    public ResponseEntity<AssistResponse> commentFileWrite(@RequestBody FileAssistRequest request) {
+        WriteResponse result = assistService.writeComments(request.filePath());
+
+        return ResponseEntity.ok(
+                AssistResponse.success(
+                        "File documented and written to disk. Backup created at: " + result.backupPath(),
+                        result,
+                        UUID.randomUUID().toString()
+                )
         );
     }
 }
