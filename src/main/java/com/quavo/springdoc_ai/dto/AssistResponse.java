@@ -2,37 +2,20 @@ package com.quavo.springdoc_ai.dto;
 
 import java.time.Instant;
 
-public class AssistResponse {
-
-    private boolean success;
-    private String message;
-    private Object data;
-    private String error;
-    private Instant timestamp;
-    private String requestId;
-
-    private AssistResponse() {}
-
-    public static Builder builder() {
-        return new Builder();
+public record AssistResponse(
+        boolean success,
+        String message,
+        Object data,
+        String error,
+        Instant timestamp,
+        String requestId
+) {
+    // Static factory replaces @Builde
+    public static AssistResponse success(String message, Object data, String requestId) {
+        return new AssistResponse(true, message, data, null, Instant.now(), requestId);
     }
 
-    public static class Builder {
-        private final AssistResponse instance = new AssistResponse();
-
-        public Builder success(boolean success) { instance.success = success; return this; }
-        public Builder message(String message) { instance.message = message; return this; }
-        public Builder data(Object data) { instance.data = data; return this; }
-        public Builder error(String error) { instance.error = error; return this; }
-        public Builder timestamp(Instant timestamp) { instance.timestamp = timestamp; return this; }
-        public Builder requestId(String requestId) { instance.requestId = requestId; return this; }
-        public AssistResponse build() { return instance; }
+    public static AssistResponse error(String message, String error, String requestId) {
+        return new AssistResponse(false, message, null, error, Instant.now(), requestId);
     }
-
-    public boolean isSuccess() { return success; }
-    public String getMessage() { return message; }
-    public Object getData() { return data; }
-    public String getError() { return error; }
-    public Instant getTimestamp() { return timestamp; }
-    public String getRequestId() { return requestId; }
 }

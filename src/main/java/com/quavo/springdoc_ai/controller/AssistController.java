@@ -25,59 +25,45 @@ public class AssistController {
     @PostMapping("/comment")
     public ResponseEntity<AssistResponse> comment(@Valid @RequestBody AssistRequest request) {
         String documented = assistService.generateComments(
-                request.getSourceCode(),
-                request.getFileName()
+                request.sourceCode(),
+                request.fileName()
         );
 
-        return ResponseEntity.ok(AssistResponse.builder()
-                .success(true)
-                .message("Documentation generated successfully")
-                .data(documented)
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .build());
+        return ResponseEntity.ok(
+                AssistResponse.success("Documentation generated successfully", documented,
+                        UUID.randomUUID().toString())
+        );
     }
 
     @PostMapping("/comment/file")
     public ResponseEntity<AssistResponse> commentFile(@RequestBody FileAssistRequest request) {
-        String documented = assistService.generateCommentsFromFile(request.getFilePath());
-
-        return ResponseEntity.ok(AssistResponse.builder()
-                .success(true)
-                .message("Documentation generated successfully")
-                .data(documented)
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .build());
+        String documented = assistService.generateCommentsFromFile(request.filePath());
+        return ResponseEntity.ok(
+                AssistResponse.success("Documentation generated successfully", documented,
+                        UUID.randomUUID().toString())
+        );
     }
 
     @PostMapping("/commit")
     public ResponseEntity<AssistResponse> commit(@RequestBody CommitRequest request) {
         String message = assistService.generateCommitMessage(
-                request.getDiff(),
-                request.getBranch(),
-                request.getRecentCommits()
+                request.diff(),
+                request.branch(),
+                request.recentCommits()
         );
 
-        return ResponseEntity.ok(AssistResponse.builder()
-                .success(true)
-                .message("Commit message generated successfully")
-                .data(message)
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .build());
+        return ResponseEntity.ok(
+                AssistResponse.success("Commit message generated successfully", message,
+                        UUID.randomUUID().toString())
+        );
     }
 
     @PostMapping("/docs")
     public ResponseEntity<AssistResponse> docs(@RequestBody DocsRequest request) {
-        String markdown = assistService.generateApiDocs(request.getFilePath());
-
-        return ResponseEntity.ok(AssistResponse.builder()
-                .success(true)
-                .message("API documentation generated successfully")
-                .data(markdown)
-                .timestamp(Instant.now())
-                .requestId(UUID.randomUUID().toString())
-                .build());
+        String markdown = assistService.generateApiDocs(request.filePath());
+        return ResponseEntity.ok(
+                AssistResponse.success("API documentation generated successfully", markdown,
+                        UUID.randomUUID().toString())
+        );
     }
 }
